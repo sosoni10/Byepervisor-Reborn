@@ -14,12 +14,15 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-15 lld-15 build-essential unzip
+          sudo apt-get install -y build-essential clang clang-15 lld lld-15 llvm nasm binutils xxd unzip
 
       - name: Download PS5 Payload SDK
         run: |
           wget https://github.com/ps5-payload-dev/sdk/releases/latest/download/ps5-payload-sdk.zip
           sudo unzip -d /opt ps5-payload-sdk.zip
+
+      - name: Show build.sh content
+        run: cat break_hv_payload/build.sh
 
       - name: Build ELF
         run: make
