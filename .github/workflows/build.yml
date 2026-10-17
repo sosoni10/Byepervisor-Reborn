@@ -1,0 +1,31 @@
+name: Build ELF
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get install -y clang lld
+
+      - name: Clone PS5 Payload SDK
+        run: |
+          git clone https://github.com/ps5-payload-dev/sdk.git /opt/ps5-payload-sdk
+          cd /opt/ps5-payload-sdk && make
+
+      - name: Build ELF
+        run: make
+        env:
+          PS5_PAYLOAD_SDK: /opt/ps5-payload-sdk
+
+      - name: Upload ELF
+        uses: actions/upload-artifact@v4
+        with:
+          name: byepervisor_reborn
+          path: byepervisor_reborn.elf
