@@ -14,21 +14,19 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential gcc clang-15 lld-15 binutils xxd unzip
+          sudo apt-get install -y build-essential gcc binutils xxd unzip
 
       - name: Download PS5 Payload SDK
         run: |
           wget https://github.com/ps5-payload-dev/sdk/releases/latest/download/ps5-payload-sdk.zip
           sudo unzip -d /opt ps5-payload-sdk.zip
 
-      - name: Fix xxd flag in build.sh
+      - name: Fix missing includes in kdlsym.c
         run: |
-          python3 -c "
-          content = open('break_hv_payload/build.sh').read()
-          old = 'xxd -i -n break_hv break_hv.bin > break_hv.h'
-          new = 'xxd -i break_hv.bin | sed ' + chr(39) + 's/break_hv_bin/break_hv/g' + chr(39) + ' > break_hv.h'
-          open('break_hv_payload/build.sh', 'w').write(content.replace(old, new))
-          "
+          sed -i 's|#include "offsets/13_00.h"|#include "offsets/12_00.h"\n#include "offsets/12_02.h"\n#include "offsets/12_20.h"\n#include "offsets/12_40.h"\n#include "offsets/12_60.h"\n#include "offsets/12_70.h"\n#include "offsets/13_00.h"\n#include "offsets/13_40.h"\n#include "offsets/13_42.h"|' kdlsym.c
+
+      - name: Skip break_hv rebuild (use pre-built header)
+        run: touch break_hv_payload/break_hv.h
 
       - name: Build ELF
         run: make
