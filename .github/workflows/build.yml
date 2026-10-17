@@ -14,15 +14,21 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential clang clang-15 lld lld-15 llvm nasm binutils xxd unzip
+          sudo apt-get install -y build-essential gcc clang-15 lld-15 binutils xxd unzip
 
       - name: Download PS5 Payload SDK
         run: |
           wget https://github.com/ps5-payload-dev/sdk/releases/latest/download/ps5-payload-sdk.zip
           sudo unzip -d /opt ps5-payload-sdk.zip
 
-      - name: Show build.sh content
-        run: cat break_hv_payload/build.sh
+      - name: Fix xxd flag in build.sh
+        run: |
+          python3 -c "
+          content = open('break_hv_payload/build.sh').read()
+          old = 'xxd -i -n break_hv break_hv.bin > break_hv.h'
+          new = 'xxd -i break_hv.bin | sed ' + chr(39) + 's/break_hv_bin/break_hv/g' + chr(39) + ' > break_hv.h'
+          open('break_hv_payload/build.sh', 'w').write(content.replace(old, new))
+          "
 
       - name: Build ELF
         run: make
